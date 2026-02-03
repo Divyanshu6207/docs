@@ -1,21 +1,10 @@
-$cert = New-SelfSignedCertificate `
-  -DnsName "covestrodemo4" `
-  -CertStoreLocation "Cert:\LocalMachine\My" `
-  -Provider "Microsoft Enhanced RSA and AES Cryptographic Provider" `
-  -KeySpec KeyExchange `
-  -KeyExportPolicy Exportable `
-  -KeyUsage DigitalSignature, KeyEncipherment `
-  -HashAlgorithm SHA256 `
-  -NotAfter (Get-Date).AddYears(5)
+$cert = Get-ChildItem Cert:\LocalMachine\My |
+Where-Object { $_.Subject -like "*covestrodemo4*" }
+
+$cert.PrivateKey
 
 
-Export-Certificate `
-  -Cert $cert `
-  -FilePath "$env:TEMP\covestro.cer"
+$cert.PublicKey.Oid.FriendlyName
 
-Import-Certificate `
-  -FilePath "$env:TEMP\covestro.cer" `
-  -CertStoreLocation "Cert:\LocalMachine\Root"
 
-iisreset
-https://covestrodemo4/odata
+Remove-Item "Cert:\LocalMachine\My\$($cert.Thumbprint)"
