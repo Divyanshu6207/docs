@@ -1,0 +1,40 @@
+# Define all DNS names for the certificate (SAN entries)
+$domains = @(
+    "covestrodemo2",
+    "covestrodemo2.local",
+    "localhost"
+)
+ 
+# Create the self-signed certificate
+$cert = New-SelfSignedCertificate `
+    -DnsName $domains `
+    -CertStoreLocation "Cert:\LocalMachine\My" `
+    -FriendlyName "Local Dev Certificate - MyApp" `
+    -KeyAlgorithm RSA `
+    -KeyLength 2048 `
+    -HashAlgorithm SHA256 `
+    -NotAfter (Get-Date).AddYears(2)
+ 
+$thumbprint = $cert.Thumbprint
+ 
+Write-Host "Certificate created. Thumbprint: $thumbprint"
+ 
+# Export certificate to a .cer file (public key only)
+$certPath = "$env:TEMP\myapp-dev.cer"
+ 
+Export-Certificate `
+    -Cert "Cert:\LocalMachine\My\$thumbprint" `
+    -FilePath $certPath | Out-Null
+ 
+Write-Host "Certificate exported to: $certPath"
+ 
+# Import certificate into Trusted Root store
+Import-Certificate `
+    -FilePath $certPath `
+    -CertStoreLocation "Cert:\LocalMachine\Root" | Out-Null
+ 
+Write-Host "Certificate imported into Trusted Root store."
+ 
+# Display certificates matching the friendly name
+Get-ChildItem Cert:\LocalMachine\My | Where-Object FriendlyName -like "*Local Dev Certificate*"
+ 
