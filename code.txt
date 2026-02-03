@@ -1,26 +1,21 @@
-$domains = @(
-    "covestrodemo3"
-)
- 
 $cert = New-SelfSignedCertificate `
-    -DnsName $domains `
-    -CertStoreLocation "Cert:\LocalMachine\My" `
-    -FriendlyName "Local Dev Certificate - MyApp" `
-    -KeyAlgorithm RSA `
-    -KeyLength 2048 `
-    -HashAlgorithm SHA256 `
-    -NotAfter (Get-Date).AddYears(5)
- 
-$thumbprint = $cert.Thumbprint
- 
+  -DnsName "covestrodemo4" `
+  -CertStoreLocation "Cert:\LocalMachine\My" `
+  -Provider "Microsoft Enhanced RSA and AES Cryptographic Provider" `
+  -KeySpec KeyExchange `
+  -KeyExportPolicy Exportable `
+  -KeyUsage DigitalSignature, KeyEncipherment `
+  -HashAlgorithm SHA256 `
+  -NotAfter (Get-Date).AddYears(5)
+
+
 Export-Certificate `
-    -Cert "Cert:\LocalMachine\My\$thumbprint" `
-    -FilePath "$env:TEMP\myapp-dev.cer"
- 
+  -Cert $cert `
+  -FilePath "$env:TEMP\covestro.cer"
+
 Import-Certificate `
-    -FilePath "$env:TEMP\myapp-dev.cer" `
-    -CertStoreLocation "Cert:\LocalMachine\Root"
- 
-# Minimal fix: filter by Subject instead of FriendlyName
-Get-ChildItem Cert:\LocalMachine\My | Where-Object Subject -like "*covestrodemo3*"
- 
+  -FilePath "$env:TEMP\covestro.cer" `
+  -CertStoreLocation "Cert:\LocalMachine\Root"
+
+iisreset
+https://covestrodemo4/odata
